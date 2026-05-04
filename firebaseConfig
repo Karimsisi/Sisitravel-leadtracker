@@ -1,0 +1,21 @@
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyACcItMvaNWZCzaPScmm9dEbfb0nfRzD5A",
+  authDomain: "sisitravelleadtracker.firebaseapp.com",
+  projectId: "sisitravelleadtracker",
+  storageBucket: "sisitravelleadtracker.firebasestorage.app",
+  messagingSenderId: "324732902201",
+  appId: "1:324732902201:web:cf3bcd5f08da5dbd8aa6e8",
+  measurementId: "G-ZES6V94PX9"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
