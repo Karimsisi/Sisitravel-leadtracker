@@ -357,14 +357,27 @@ import {
    Get this from Firebase Console → Project settings → Your apps → Web app.
    The apiKey is safe to expose publicly; security is enforced by Firestore rules.
    ========================================================================= */
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "REPLACE_ME",
-  authDomain: "REPLACE_ME.firebaseapp.com",
-  projectId: "REPLACE_ME",
-  storageBucket: "REPLACE_ME.appspot.com",
-  messagingSenderId: "REPLACE_ME",
-  appId: "REPLACE_ME"
+  apiKey: "AIzaSyACcItMvaNWZCzaPScmm9dEbfb0nfRzD5A",
+  authDomain: "sisitravelleadtracker.firebaseapp.com",
+  projectId: "sisitravelleadtracker",
+  storageBucket: "sisitravelleadtracker.firebasestorage.app",
+  messagingSenderId: "324732902201",
+  appId: "1:324732902201:web:a9ce7a84fa4cbaba8aa6e8",
+  measurementId: "G-0YF21XNJ4V"
 };
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
