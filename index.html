@@ -1,0 +1,906 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Sisi Travel — Leads CRM</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js"></script>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #1f2933; background: #f8fafc; font-size: 14px; line-height: 1.45;
+  }
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 16px 20px 80px; }
+  h1 { font-size: 22px; margin: 0 0 2px; font-weight: 700; letter-spacing: -0.01em; }
+  h2 { font-size: 15px; margin: 0 0 10px; font-weight: 600; color: #334155; text-transform: uppercase; letter-spacing: 0.06em; }
+  .sub { color: #64748b; font-size: 13px; margin: 0 0 18px; }
+
+  /* Login screen */
+  .login-shell {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px;
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  }
+  .login-card {
+    background: #fff; border-radius: 14px; padding: 36px 32px; width: 100%; max-width: 380px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.08); border: 1px solid #fde68a;
+  }
+  .login-brand { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
+  .brand-mark {
+    width: 42px; height: 42px; border-radius: 10px;
+    background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 700; font-size: 19px;
+  }
+  .login-card h1 { font-size: 19px; margin: 0; }
+  .login-card .sub { font-size: 12px; margin: 0; }
+  .login-card label { display: block; font-size: 11px; font-weight: 600; color: #475569; text-transform: uppercase; letter-spacing: 0.04em; margin: 14px 0 4px; }
+  .login-card input {
+    width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; padding: 9px 12px;
+    font-size: 14px; background: #fff; color: #1f2933;
+  }
+  .login-card input:focus { outline: 2px solid #fcd34d; outline-offset: -1px; border-color: #f59e0b; }
+  .login-card button {
+    width: 100%; margin-top: 18px; padding: 10px 14px; border-radius: 8px;
+    background: #b45309; color: #fff; font-weight: 600; font-size: 14px; border: none; cursor: pointer;
+    transition: background .15s;
+  }
+  .login-card button:hover { background: #92400e; }
+  .login-card button:disabled { opacity: 0.6; cursor: not-allowed; }
+  .login-error { color: #b91c1c; font-size: 12px; margin-top: 10px; min-height: 16px; }
+  .login-card .footer-hint { font-size: 11px; color: #94a3b8; text-align: center; margin-top: 20px; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid #e2e8f0; margin-bottom: 18px; flex-wrap: wrap; }
+  .tab {
+    padding: 9px 14px; font-size: 13px; font-weight: 500; color: #64748b;
+    border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent;
+    transition: color .15s, border-color .15s;
+  }
+  .tab:hover { color: #1e293b; }
+  .tab.active { color: #b45309; border-bottom-color: #b45309; font-weight: 600; }
+  .tab .badge { background: #f1f5f9; color: #475569; padding: 1px 7px; border-radius: 10px; font-size: 11px; margin-left: 5px; font-weight: 600; }
+  .tab.active .badge { background: #fef3c7; color: #92400e; }
+
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* KPIs */
+  .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin-bottom: 18px; }
+  .kpi { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; }
+  .kpi .lbl { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+  .kpi .val { font-size: 22px; font-weight: 700; margin-top: 4px; color: #0f172a; }
+  .kpi.warn .val { color: #b45309; }
+  .kpi.danger .val { color: #b91c1c; }
+  .kpi.good .val { color: #047857; }
+
+  .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
+  @media (max-width: 760px) { .chart-grid { grid-template-columns: 1fr; } }
+  .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px 16px; }
+  .card h3 { font-size: 13px; margin: 0 0 10px; font-weight: 600; color: #334155; }
+  .chart-wrap { position: relative; height: 220px; }
+
+  .toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 12px; }
+  .toolbar input[type=text], .toolbar select { border: 1px solid #cbd5e1; border-radius: 7px; padding: 6px 10px; font-size: 13px; background: #fff; color: #1f2933; min-width: 100px; }
+  .toolbar input[type=text]:focus, .toolbar select:focus { outline: 2px solid #fcd34d; outline-offset: -1px; border-color: #f59e0b; }
+  .toolbar .grow { flex: 1; min-width: 180px; }
+
+  .btn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid #cbd5e1; background: #fff; color: #1f2933; padding: 6px 12px; border-radius: 7px; font-size: 13px; font-weight: 500; cursor: pointer; transition: background .15s, border-color .15s; }
+  .btn:hover { background: #f8fafc; border-color: #94a3b8; }
+  .btn.primary { background: #b45309; color: #fff; border-color: #b45309; }
+  .btn.primary:hover { background: #92400e; border-color: #92400e; }
+  .btn.ghost { border-color: transparent; }
+  .btn.ghost:hover { background: #f1f5f9; }
+  .btn.danger { color: #b91c1c; }
+  .btn.danger:hover { background: #fef2f2; border-color: #fecaca; }
+  .btn.sm { padding: 4px 9px; font-size: 12px; }
+
+  .table-wrap { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; overflow: auto; }
+  table.leads { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.leads th, table.leads td { padding: 9px 10px; text-align: left; border-bottom: 1px solid #f1f5f9; vertical-align: top; white-space: nowrap; }
+  table.leads th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; font-weight: 600; background: #f8fafc; position: sticky; top: 0; z-index: 1; cursor: pointer; user-select: none; }
+  table.leads th:hover { background: #f1f5f9; }
+  table.leads th.sorted::after { content: " ↓"; color: #b45309; }
+  table.leads th.sorted.asc::after { content: " ↑"; }
+  table.leads tr:hover td { background: #fffbeb; }
+  table.leads td.client strong { display: block; color: #0f172a; }
+  table.leads td.client small { color: #64748b; font-size: 11px; }
+
+  .pill { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+  .pill.s-new { background: #eff6ff; color: #1d4ed8; }
+  .pill.s-contacted { background: #ecfeff; color: #0e7490; }
+  .pill.s-quoted { background: #fef3c7; color: #92400e; }
+  .pill.s-negotiating { background: #ffedd5; color: #c2410c; }
+  .pill.s-confirmed { background: #dcfce7; color: #166534; }
+  .pill.s-lost { background: #fee2e2; color: #991b1b; }
+  .pill.s-onhold { background: #f1f5f9; color: #475569; }
+
+  .due-overdue { color: #b91c1c; font-weight: 600; }
+  .due-soon { color: #b45309; font-weight: 600; }
+  .due-future { color: #475569; }
+
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45); display: none; align-items: flex-start; justify-content: center; z-index: 100; padding: 40px 16px; overflow-y: auto; }
+  .modal-backdrop.open { display: flex; }
+  .modal { background: #fff; border-radius: 12px; width: 100%; max-width: 640px; box-shadow: 0 20px 60px rgba(0,0,0,0.18); border: 1px solid #e2e8f0; }
+  .modal header { padding: 16px 20px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+  .modal header h3 { margin: 0; font-size: 16px; font-weight: 600; color: #0f172a; }
+  .modal .close { background: none; border: none; font-size: 22px; color: #64748b; cursor: pointer; line-height: 1; }
+  .modal-body { padding: 18px 20px; }
+  .modal footer { padding: 14px 20px; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 8px; }
+
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 560px) { .form-grid { grid-template-columns: 1fr; } }
+  .field { display: flex; flex-direction: column; gap: 4px; }
+  .field.full { grid-column: 1 / -1; }
+  .field label { font-size: 11px; color: #475569; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+  .field input, .field select, .field textarea { border: 1px solid #cbd5e1; border-radius: 7px; padding: 7px 10px; font-size: 13px; background: #fff; color: #1f2933; font-family: inherit; }
+  .field input:focus, .field select:focus, .field textarea:focus { outline: 2px solid #fcd34d; outline-offset: -1px; border-color: #f59e0b; }
+  .field textarea { min-height: 70px; resize: vertical; }
+
+  .empty { text-align: center; padding: 50px 20px; color: #64748b; background: #fff; border: 1px dashed #cbd5e1; border-radius: 10px; }
+  .empty h3 { font-size: 16px; margin: 0 0 6px; color: #334155; }
+  .empty p { margin: 0 0 14px; }
+
+  .followup-list { display: flex; flex-direction: column; gap: 8px; }
+  .followup-item { display: flex; justify-content: space-between; align-items: center; gap: 12px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 11px 14px; }
+  .followup-item.overdue { border-left: 3px solid #dc2626; }
+  .followup-item.soon { border-left: 3px solid #f59e0b; }
+  .followup-meta { display: flex; flex-direction: column; gap: 2px; }
+  .followup-meta .name { font-weight: 600; color: #0f172a; font-size: 14px; }
+  .followup-meta .detail { color: #64748b; font-size: 12px; }
+  .followup-actions { display: flex; gap: 6px; }
+
+  .header-bar { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; flex-wrap: wrap; gap: 10px; }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .user-pill { font-size: 12px; color: #64748b; background: #f1f5f9; padding: 4px 10px; border-radius: 999px; display: inline-flex; align-items: center; gap: 6px; }
+
+  .footer-note { text-align: center; color: #94a3b8; font-size: 11px; margin-top: 20px; }
+  .loading-mask { position: fixed; inset: 0; background: rgba(255,255,255,0.85); display: flex; align-items: center; justify-content: center; z-index: 200; font-size: 13px; color: #64748b; }
+
+  .toast { position: fixed; bottom: 20px; right: 20px; background: #0f172a; color: #fff; padding: 10px 16px; border-radius: 8px; font-size: 13px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); opacity: 0; transform: translateY(8px); transition: opacity .2s, transform .2s; pointer-events: none; z-index: 300; }
+  .toast.show { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="loginShell" class="login-shell" style="display:none">
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="brand-mark">S</div>
+      <div>
+        <h1>Sisi Travel CRM</h1>
+        <div class="sub">Sign in to continue</div>
+      </div>
+    </div>
+    <form id="loginForm">
+      <label>Email</label>
+      <input id="loginEmail" type="email" autocomplete="username" required />
+      <label>Password</label>
+      <input id="loginPassword" type="password" autocomplete="current-password" required />
+      <button id="loginBtn" type="submit">Sign in</button>
+      <div class="login-error" id="loginError"></div>
+    </form>
+    <div class="footer-hint">For Sisi Travel agents only. Contact Karim for access.</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="appShell" class="wrap" style="display:none">
+
+  <div class="header-bar">
+    <div class="brand">
+      <div class="brand-mark">S</div>
+      <div>
+        <h1>Sisi Travel — Leads CRM</h1>
+        <div class="sub">Track inquiries from first contact through confirmed booking</div>
+      </div>
+    </div>
+    <div style="display:flex; gap:8px; flex-wrap: wrap; align-items:center;">
+      <span class="user-pill" id="userPill"></span>
+      <button class="btn" id="exportBtn">Export CSV</button>
+      <button class="btn primary" id="newLeadBtn">+ New lead</button>
+      <button class="btn ghost" id="signOutBtn">Sign out</button>
+    </div>
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button class="tab active" data-tab="pipeline">Pipeline</button>
+    <button class="tab" data-tab="leads">Leads <span class="badge" id="countLeads">0</span></button>
+    <button class="tab" data-tab="followups">Follow-ups <span class="badge" id="countFollowups">0</span></button>
+  </div>
+
+  <section class="section active" id="sec-pipeline">
+    <div class="kpi-row" id="kpiRow"></div>
+    <div class="chart-grid">
+      <div class="card"><h3>Pipeline by status</h3><div class="chart-wrap"><canvas id="chartStatus"></canvas></div></div>
+      <div class="card"><h3>Pipeline value by status (USD)</h3><div class="chart-wrap"><canvas id="chartValue"></canvas></div></div>
+      <div class="card"><h3>Leads by source</h3><div class="chart-wrap"><canvas id="chartSource"></canvas></div></div>
+      <div class="card"><h3>Leads by agent</h3><div class="chart-wrap"><canvas id="chartAgent"></canvas></div></div>
+      <div class="card"><h3>Leads by nationality</h3><div class="chart-wrap"><canvas id="chartNationality"></canvas></div></div>
+    </div>
+  </section>
+
+  <section class="section" id="sec-leads">
+    <div class="toolbar">
+      <input type="text" id="qSearch" placeholder="Search name, destination, notes…" class="grow" />
+      <select id="qStatus">
+        <option value="">All statuses</option>
+        <option>New</option><option>Contacted</option><option>Quoted</option>
+        <option>Negotiating</option><option>Confirmed</option><option>On Hold</option><option>Lost</option>
+      </select>
+      <select id="qAgent"><option value="">All agents</option></select>
+      <select id="qNationality"><option value="">All nationalities</option></select>
+      <select id="qSource">
+        <option value="">All sources</option>
+        <option>Referral</option><option>Website</option><option>Instagram</option>
+        <option>Facebook</option><option>WhatsApp</option><option>Walk-in</option>
+        <option>Repeat client</option><option>Cold outreach</option><option>Other</option>
+      </select>
+      <button class="btn ghost sm" id="clearFilters">Clear</button>
+    </div>
+    <div class="table-wrap" id="tableWrap"></div>
+  </section>
+
+  <section class="section" id="sec-followups">
+    <h2>Overdue follow-ups</h2>
+    <div class="followup-list" id="overdueList"></div>
+    <h2 style="margin-top:22px">Due in next 7 days</h2>
+    <div class="followup-list" id="soonList"></div>
+    <h2 style="margin-top:22px">Later</h2>
+    <div class="followup-list" id="laterList"></div>
+  </section>
+
+  <div class="footer-note">Synced live across all signed-in agents · Sisi Travel</div>
+</div>
+
+<!-- Lead modal -->
+<div class="modal-backdrop" id="modal">
+  <div class="modal">
+    <header>
+      <h3 id="modalTitle">New lead</h3>
+      <button class="close" id="modalClose" aria-label="Close">&times;</button>
+    </header>
+    <div class="modal-body">
+      <form id="leadForm">
+        <div class="form-grid">
+          <div class="field"><label>Client name *</label><input name="client_name" required /></div>
+          <div class="field"><label>Lead created (dd/mm/yyyy)</label><input name="created_at" type="date" /></div>
+          <div class="field"><label>Agency</label><input name="agency" placeholder="e.g. Travco, direct, partner DMC" /></div>
+          <div class="field"><label>Contact person</label><input name="contact_person" placeholder="Person you speak to" /></div>
+          <div class="field"><label>Email</label><input name="email" type="email" /></div>
+          <div class="field"><label>Phone / WhatsApp</label><input name="phone" /></div>
+          <div class="field">
+            <label>Nationality</label>
+            <input name="nationality" placeholder="e.g. Egyptian, British, Italian" list="nationalityList" />
+            <datalist id="nationalityList">
+              <option>Egyptian</option><option>British</option><option>American</option>
+              <option>Italian</option><option>French</option><option>German</option>
+              <option>Spanish</option><option>Greek</option><option>Saudi</option>
+              <option>Emirati</option><option>Kuwaiti</option><option>Qatari</option>
+              <option>Lebanese</option><option>Jordanian</option><option>Indian</option>
+              <option>Chinese</option><option>Japanese</option><option>Australian</option>
+              <option>Canadian</option><option>Brazilian</option><option>Russian</option>
+              <option>Dutch</option><option>Swiss</option><option>Swedish</option>
+            </datalist>
+          </div>
+          <div class="field">
+            <label>Source</label>
+            <select name="source">
+              <option>Referral</option><option>Website</option><option>Instagram</option>
+              <option>Facebook</option><option>WhatsApp</option><option>Walk-in</option>
+              <option>Repeat client</option><option>Cold outreach</option><option>Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Trip type</label>
+            <select name="trip_type">
+              <option>Leisure</option><option>Luxury / Bespoke</option><option>Honeymoon</option>
+              <option>Family</option><option>Adventure</option><option>Group / MICE</option>
+              <option>Corporate</option><option>Other</option>
+            </select>
+          </div>
+          <div class="field"><label>Destination</label><input name="destination" placeholder="e.g. Egypt + Jordan" /></div>
+          <div class="field"><label>Assigned agent</label><input name="agent" placeholder="e.g. Karim" /></div>
+          <div class="field"><label>Travel start (dd/mm/yyyy)</label><input name="start_date" type="date" /></div>
+          <div class="field"><label>Travel end (dd/mm/yyyy)</label><input name="end_date" type="date" /></div>
+          <div class="field"><label>Adults</label><input name="adults" type="number" min="0" value="2" /></div>
+          <div class="field"><label>Children</label><input name="children" type="number" min="0" value="0" /></div>
+          <div class="field"><label>Approx. rooms</label><input name="approx_rooms" type="number" min="0" step="1" placeholder="e.g. 1, 2, 10" /></div>
+          <div class="field"><label>Estimated value</label><input name="est_value" type="number" min="0" step="any" /></div>
+          <div class="field">
+            <label>Currency</label>
+            <select name="currency">
+              <option>USD</option><option>EUR</option><option>EGP</option>
+              <option>GBP</option><option>AED</option><option>SAR</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Status</label>
+            <select name="status">
+              <option>New</option><option>Contacted</option><option>Quoted</option>
+              <option>Negotiating</option><option>Confirmed</option><option>On Hold</option><option>Lost</option>
+            </select>
+          </div>
+          <div class="field"><label>Next action date (dd/mm/yyyy)</label><input name="next_action_date" type="date" /></div>
+          <div class="field full"><label>Next action</label><input name="next_action" /></div>
+          <div class="field full"><label>Notes</label><textarea name="notes"></textarea></div>
+          <div class="field"><label>Final value (if confirmed)</label><input name="final_value" type="number" min="0" step="any" /></div>
+          <div class="field"><label>Lost reason (if lost)</label><input name="lost_reason" /></div>
+        </div>
+      </form>
+    </div>
+    <footer>
+      <button class="btn danger" id="deleteBtn" style="margin-right:auto; display:none">Delete</button>
+      <button class="btn" id="cancelBtn">Cancel</button>
+      <button class="btn primary" id="saveBtn">Save lead</button>
+    </footer>
+  </div>
+</div>
+
+<div id="loadingMask" class="loading-mask">Loading…</div>
+<div id="toast" class="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+/* =========================================================================
+   STEP 1 — Paste your Firebase config below.
+   Get this from Firebase Console → Project settings → Your apps → Web app.
+   The apiKey is safe to expose publicly; security is enforced by Firestore rules.
+   ========================================================================= */
+const firebaseConfig = {
+  apiKey: "REPLACE_ME",
+  authDomain: "REPLACE_ME.firebaseapp.com",
+  projectId: "REPLACE_ME",
+  storageBucket: "REPLACE_ME.appspot.com",
+  messagingSenderId: "REPLACE_ME",
+  appId: "REPLACE_ME"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+/* ============================================================ */
+
+const FILTERS_KEY = 'sisi_crm_filters_v1';
+const SORT_KEY = 'sisi_crm_sort_v1';
+const STATUSES = ['New','Contacted','Quoted','Negotiating','Confirmed','On Hold','Lost'];
+const STATUS_COLORS = {
+  'New':'#3b82f6','Contacted':'#06b6d4','Quoted':'#f59e0b',
+  'Negotiating':'#f97316','Confirmed':'#10b981',
+  'On Hold':'#94a3b8','Lost':'#ef4444'
+};
+
+let leads = [];
+let editingId = null;
+let charts = {};
+let unsubscribe = null;
+let currentUser = null;
+
+let filters = { search:'', status:'', agent:'', source:'', nationality:'' };
+let sort = { col: 'next_action_date', asc: true };
+
+function loadFilters() {
+  try { filters = Object.assign(filters, JSON.parse(localStorage.getItem(FILTERS_KEY) || '{}')); } catch(e){}
+  try { sort = Object.assign(sort, JSON.parse(localStorage.getItem(SORT_KEY) || '{}')); } catch(e){}
+}
+function saveFilters() {
+  localStorage.setItem(FILTERS_KEY, JSON.stringify(filters));
+  localStorage.setItem(SORT_KEY, JSON.stringify(sort));
+}
+function uid() { return 'L' + Date.now().toString(36) + Math.random().toString(36).slice(2,5).toUpperCase(); }
+function todayISO() { return new Date().toISOString().slice(0,10); }
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(window._toastT);
+  window._toastT = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+/* ---------- Auth ---------- */
+onAuthStateChanged(auth, user => {
+  if (user) {
+    currentUser = user;
+    document.getElementById('loginShell').style.display = 'none';
+    document.getElementById('appShell').style.display = 'block';
+    document.getElementById('userPill').textContent = user.email;
+    document.getElementById('loadingMask').style.display = 'flex';
+    startSync();
+  } else {
+    currentUser = null;
+    if (unsubscribe) { unsubscribe(); unsubscribe = null; }
+    leads = [];
+    document.getElementById('appShell').style.display = 'none';
+    document.getElementById('loginShell').style.display = 'flex';
+    document.getElementById('loadingMask').style.display = 'none';
+  }
+});
+
+document.getElementById('loginForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const email = document.getElementById('loginEmail').value.trim();
+  const pwd = document.getElementById('loginPassword').value;
+  const btn = document.getElementById('loginBtn');
+  const err = document.getElementById('loginError');
+  err.textContent = '';
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  try {
+    await signInWithEmailAndPassword(auth, email, pwd);
+  } catch (ex) {
+    const msg = ex.code === 'auth/invalid-credential' || ex.code === 'auth/wrong-password' || ex.code === 'auth/user-not-found'
+      ? 'Email or password is incorrect.'
+      : (ex.code === 'auth/too-many-requests' ? 'Too many attempts. Try again later.' : (ex.message || 'Sign-in failed.'));
+    err.textContent = msg;
+  } finally {
+    btn.disabled = false; btn.textContent = 'Sign in';
+  }
+});
+
+document.getElementById('signOutBtn').addEventListener('click', () => signOut(auth));
+
+/* ---------- Firestore sync ---------- */
+function startSync() {
+  if (unsubscribe) unsubscribe();
+  unsubscribe = onSnapshot(collection(db, 'leads'), snap => {
+    leads = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    document.getElementById('loadingMask').style.display = 'none';
+    renderAll();
+  }, err => {
+    document.getElementById('loadingMask').style.display = 'none';
+    showToast('Sync error: ' + err.message);
+  });
+}
+
+async function persistLead(data, id) {
+  data.updated_at = serverTimestamp();
+  data.updated_by = currentUser ? currentUser.email : '';
+  if (!id) {
+    id = uid();
+    data.created_by = currentUser ? currentUser.email : '';
+    if (!data.created_at) data.created_at = todayISO();
+  }
+  await setDoc(doc(db, 'leads', id), data, { merge: true });
+}
+
+async function removeLead(id) {
+  await deleteDoc(doc(db, 'leads', id));
+}
+
+/* ---------- Filters / sort ---------- */
+function applyFilters(arr) {
+  return arr.filter(l => {
+    if (filters.status && l.status !== filters.status) return false;
+    if (filters.agent && (l.agent||'') !== filters.agent) return false;
+    if (filters.source && l.source !== filters.source) return false;
+    if (filters.nationality && (l.nationality||'') !== filters.nationality) return false;
+    if (filters.search) {
+      const q = filters.search.toLowerCase();
+      const blob = [l.client_name, l.destination, l.notes, l.next_action, l.email, l.phone, l.agent, l.nationality, l.agency, l.contact_person].join(' ').toLowerCase();
+      if (!blob.includes(q)) return false;
+    }
+    return true;
+  });
+}
+function sortLeads(arr) {
+  const c = sort.col, asc = sort.asc;
+  return arr.slice().sort((a,b) => {
+    let av = a[c], bv = b[c];
+    if (av == null) av = ''; if (bv == null) bv = '';
+    if (typeof av === 'number' && typeof bv === 'number') return asc ? av-bv : bv-av;
+    av = String(av); bv = String(bv);
+    return asc ? av.localeCompare(bv) : bv.localeCompare(av);
+  });
+}
+
+/* ---------- Helpers ---------- */
+function fmtDate(iso) {
+  if (!iso) return '—';
+  const s = String(iso);
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
+    const [y, m, d] = s.slice(0,10).split('-');
+    return `${d}/${m}/${y}`;
+  }
+  return s;
+}
+function fmtMoney(v, cur) {
+  if (!v && v !== 0) return '—';
+  const n = Number(v);
+  if (isNaN(n)) return '—';
+  return new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(n) + ' ' + (cur||'USD');
+}
+function statusPill(s) {
+  const cls = 's-' + (s||'').toLowerCase().replace(/[^a-z]/g,'');
+  return `<span class="pill ${cls}">${s||'—'}</span>`;
+}
+function diffDays(iso) {
+  if (!iso) return null;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const d = new Date(iso); d.setHours(0,0,0,0);
+  return Math.round((d - today) / 86400000);
+}
+function dueLabel(iso) {
+  if (!iso) return '<span class="due-future">—</span>';
+  const days = diffDays(iso);
+  const dt = fmtDate(iso);
+  if (days < 0) return `<span class="due-overdue">${dt} (${-days}d overdue)</span>`;
+  if (days <= 7) return `<span class="due-soon">${dt} (in ${days}d)</span>`;
+  return `<span class="due-future">${dt}</span>`;
+}
+function escapeHtml(s) {
+  return String(s||'').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+}
+
+/* ---------- Render: leads table ---------- */
+function renderTable() {
+  const wrap = document.getElementById('tableWrap');
+  const filtered = sortLeads(applyFilters(leads));
+
+  if (!leads.length) {
+    wrap.innerHTML = `<div class="empty">
+      <h3>No leads yet</h3>
+      <p>Add your first inquiry to start tracking the pipeline. Anything you add will sync live to all your agents.</p>
+      <button class="btn primary" id="emptyAddBtn">+ Add lead</button>
+    </div>`;
+    document.getElementById('emptyAddBtn').addEventListener('click', () => openModal());
+    return;
+  }
+  if (!filtered.length) {
+    wrap.innerHTML = `<div class="empty"><h3>No leads match your filters</h3><p>Try clearing the search or changing filters.</p></div>`;
+    return;
+  }
+
+  const cols = [
+    { k:'client_name', t:'Client / Trip' },
+    { k:'status', t:'Status' },
+    { k:'agent', t:'Agent' },
+    { k:'source', t:'Source' },
+    { k:'start_date', t:'Travel' },
+    { k:'pax', t:'Pax · Rms' },
+    { k:'est_value', t:'Est. value' },
+    { k:'next_action_date', t:'Next action' },
+    { k:'_actions', t:'' },
+  ];
+
+  let html = '<table class="leads"><thead><tr>';
+  cols.forEach(c => {
+    if (c.k === '_actions') { html += `<th></th>`; return; }
+    const sortedCls = sort.col===c.k ? (sort.asc?'sorted asc':'sorted') : '';
+    html += `<th class="${sortedCls}" data-col="${c.k}">${c.t}</th>`;
+  });
+  html += '</tr></thead><tbody>';
+
+  filtered.forEach(l => {
+    const pax = (Number(l.adults||0) + Number(l.children||0)) || '—';
+    const rooms = (l.approx_rooms||l.approx_rooms===0) ? l.approx_rooms : '—';
+    const travel = l.start_date ? fmtDate(l.start_date) : '—';
+    const agencyLine = l.agency ? `${escapeHtml(l.agency)}${l.contact_person ? ' · ' + escapeHtml(l.contact_person) : ''}` : '';
+    html += `<tr data-id="${l.id}">
+      <td class="client">
+        <strong>${escapeHtml(l.client_name)}</strong>
+        <small>${agencyLine ? agencyLine + '<br>' : ''}${escapeHtml(l.nationality||'—')} · ${escapeHtml(l.destination||'')} · ${escapeHtml(l.trip_type||'')}</small>
+      </td>
+      <td>${statusPill(l.status)}</td>
+      <td>${escapeHtml(l.agent||'—')}</td>
+      <td>${escapeHtml(l.source||'—')}</td>
+      <td>${travel}</td>
+      <td>${pax}${rooms !== '—' ? ` · ${rooms} rm` : ''}</td>
+      <td>${fmtMoney(l.est_value, l.currency)}</td>
+      <td>${dueLabel(l.next_action_date)}<br><small style="color:#64748b">${escapeHtml(l.next_action||'')}</small></td>
+      <td><button class="btn sm ghost" data-edit="${l.id}">Edit</button></td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  wrap.innerHTML = html;
+
+  wrap.querySelectorAll('th[data-col]').forEach(th => {
+    th.addEventListener('click', () => {
+      const col = th.dataset.col;
+      if (sort.col === col) sort.asc = !sort.asc;
+      else { sort.col = col; sort.asc = true; }
+      saveFilters(); renderTable();
+    });
+  });
+  wrap.querySelectorAll('button[data-edit]').forEach(b => {
+    b.addEventListener('click', () => openModal(b.dataset.edit));
+  });
+}
+
+/* ---------- Render: pipeline ---------- */
+function renderPipeline() {
+  const total = leads.length;
+  const byStatus = {}; STATUSES.forEach(s => byStatus[s] = 0);
+  const valByStatus = {}; STATUSES.forEach(s => valByStatus[s] = 0);
+  const bySource = {}; const byAgent = {}; const byNationality = {};
+  let pipelineValue = 0; let confirmedValue = 0; let confirmedCount = 0;
+
+  leads.forEach(l => {
+    byStatus[l.status] = (byStatus[l.status] || 0) + 1;
+    const v = Number(l.est_value || 0);
+    valByStatus[l.status] = (valByStatus[l.status] || 0) + v;
+    bySource[l.source||'Other'] = (bySource[l.source||'Other'] || 0) + 1;
+    byAgent[l.agent||'Unassigned'] = (byAgent[l.agent||'Unassigned'] || 0) + 1;
+    byNationality[l.nationality||'Unknown'] = (byNationality[l.nationality||'Unknown'] || 0) + 1;
+    if (!['Lost','Confirmed'].includes(l.status)) pipelineValue += v;
+    if (l.status === 'Confirmed') { confirmedValue += Number(l.final_value || l.est_value || 0); confirmedCount++; }
+  });
+
+  const closed = leads.filter(l => ['Confirmed','Lost'].includes(l.status)).length;
+  const convRate = closed ? Math.round(100 * confirmedCount / closed) : 0;
+  const overdue = leads.filter(l => l.next_action_date && diffDays(l.next_action_date) < 0 && !['Lost','Confirmed'].includes(l.status)).length;
+
+  const kpis = [
+    { lbl:'Open leads', val: total - byStatus['Lost'] - byStatus['Confirmed'] },
+    { lbl:'Pipeline value', val: fmtMoney(pipelineValue,'USD') },
+    { lbl:'Confirmed bookings', val: confirmedCount, cls:'good' },
+    { lbl:'Confirmed value', val: fmtMoney(confirmedValue,'USD'), cls:'good' },
+    { lbl:'Conversion rate', val: convRate + '%' },
+    { lbl:'Overdue follow-ups', val: overdue, cls: overdue>0?'danger':'' },
+  ];
+  document.getElementById('kpiRow').innerHTML = kpis.map(k =>
+    `<div class="kpi ${k.cls||''}"><div class="lbl">${k.lbl}</div><div class="val">${k.val}</div></div>`
+  ).join('');
+
+  drawDoughnut('chartStatus', STATUSES, STATUSES.map(s => byStatus[s]||0), STATUSES.map(s => STATUS_COLORS[s]));
+  drawBar('chartValue', STATUSES, STATUSES.map(s => Math.round(valByStatus[s]||0)), STATUSES.map(s => STATUS_COLORS[s]));
+  drawBarH('chartSource', Object.keys(bySource), Object.values(bySource), '#b45309');
+  drawBarH('chartAgent', Object.keys(byAgent), Object.values(byAgent), '#0e7490');
+  const natEntries = Object.entries(byNationality).sort((a,b) => b[1]-a[1]).slice(0, 10);
+  drawBarH('chartNationality', natEntries.map(e=>e[0]), natEntries.map(e=>e[1]), '#7c3aed');
+
+  document.getElementById('countLeads').textContent = total;
+  document.getElementById('countFollowups').textContent = leads.filter(l => l.next_action_date && diffDays(l.next_action_date) <= 7 && !['Lost','Confirmed'].includes(l.status)).length;
+}
+
+function drawDoughnut(id, labels, data, colors) {
+  if (charts[id]) charts[id].destroy();
+  charts[id] = new Chart(document.getElementById(id), {
+    type:'doughnut',
+    data: { labels, datasets:[{ data, backgroundColor:colors, borderWidth:0 }] },
+    options: { plugins:{ legend:{ position:'right', labels:{ boxWidth:10, font:{size:11} } } }, maintainAspectRatio:false }
+  });
+}
+function drawBar(id, labels, data, colors) {
+  if (charts[id]) charts[id].destroy();
+  charts[id] = new Chart(document.getElementById(id), {
+    type:'bar',
+    data:{ labels, datasets:[{ data, backgroundColor: colors, borderRadius: 4 }] },
+    options:{ plugins:{ legend:{display:false} }, scales:{ y:{ beginAtZero:true, ticks:{font:{size:11}}}, x:{ ticks:{font:{size:11}}} }, maintainAspectRatio:false }
+  });
+}
+function drawBarH(id, labels, data, color) {
+  if (charts[id]) charts[id].destroy();
+  charts[id] = new Chart(document.getElementById(id), {
+    type:'bar',
+    data:{ labels, datasets:[{ data, backgroundColor: color, borderRadius: 4 }] },
+    options:{ indexAxis:'y', plugins:{ legend:{display:false} }, scales:{ x:{ beginAtZero:true, ticks:{font:{size:11}}}, y:{ ticks:{font:{size:11}}} }, maintainAspectRatio:false }
+  });
+}
+
+/* ---------- Render: follow-ups ---------- */
+function renderFollowups() {
+  const open = leads.filter(l => !['Lost','Confirmed'].includes(l.status) && l.next_action_date);
+  const overdue = []; const soon = []; const later = [];
+  open.forEach(l => {
+    const d = diffDays(l.next_action_date);
+    if (d < 0) overdue.push(l);
+    else if (d <= 7) soon.push(l);
+    else later.push(l);
+  });
+  const sortFn = (a,b) => (a.next_action_date||'').localeCompare(b.next_action_date||'');
+  overdue.sort(sortFn); soon.sort(sortFn); later.sort(sortFn);
+
+  document.getElementById('overdueList').innerHTML = overdue.length
+    ? overdue.map(l => followupCard(l, 'overdue')).join('')
+    : `<div class="empty" style="padding:20px"><p style="margin:0">Nothing overdue. Nice work.</p></div>`;
+  document.getElementById('soonList').innerHTML = soon.length
+    ? soon.map(l => followupCard(l, 'soon')).join('')
+    : `<div class="empty" style="padding:20px"><p style="margin:0">Nothing due in the next 7 days.</p></div>`;
+  document.getElementById('laterList').innerHTML = later.length
+    ? later.map(l => followupCard(l, 'later')).join('')
+    : `<div class="empty" style="padding:20px"><p style="margin:0">No future follow-ups scheduled.</p></div>`;
+
+  document.querySelectorAll('[data-fu-edit]').forEach(b => b.addEventListener('click', () => openModal(b.dataset.fuEdit)));
+  document.querySelectorAll('[data-fu-done]').forEach(b => {
+    b.addEventListener('click', async () => {
+      const l = leads.find(x => x.id === b.dataset.fuDone);
+      if (!l) return;
+      await persistLead({ ...l, last_contact_date: todayISO(), next_action_date: '', next_action: '' }, l.id);
+      showToast('Marked done');
+    });
+  });
+}
+function followupCard(l, kind) {
+  return `<div class="followup-item ${kind}">
+    <div class="followup-meta">
+      <span class="name">${escapeHtml(l.client_name)} ${statusPill(l.status)}</span>
+      <span class="detail">${escapeHtml(l.destination||'')} · ${escapeHtml(l.agent||'Unassigned')} · ${dueLabel(l.next_action_date)}</span>
+      ${l.next_action ? `<span class="detail" style="color:#334155">→ ${escapeHtml(l.next_action)}</span>` : ''}
+    </div>
+    <div class="followup-actions">
+      <button class="btn sm" data-fu-done="${l.id}">Mark done</button>
+      <button class="btn sm ghost" data-fu-edit="${l.id}">Edit</button>
+    </div>
+  </div>`;
+}
+
+/* ---------- Modal ---------- */
+function openModal(id) {
+  editingId = id || null;
+  const form = document.getElementById('leadForm');
+  form.reset();
+  document.getElementById('modalTitle').textContent = editingId ? 'Edit lead' : 'New lead';
+  document.getElementById('deleteBtn').style.display = editingId ? 'inline-flex' : 'none';
+
+  if (editingId) {
+    const l = leads.find(x => x.id === editingId);
+    if (l) Object.keys(l).forEach(k => {
+      const f = form.elements[k];
+      if (f && f.type !== 'file') f.value = l[k] == null ? '' : l[k];
+    });
+  } else {
+    form.elements['created_at'].value = todayISO();
+    form.elements['status'].value = 'New';
+    form.elements['adults'].value = 2;
+    form.elements['children'].value = 0;
+    form.elements['currency'].value = 'USD';
+    if (currentUser && currentUser.email) {
+      const guess = currentUser.email.split('@')[0].split('.')[0];
+      form.elements['agent'].value = guess.charAt(0).toUpperCase() + guess.slice(1);
+    }
+  }
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+  editingId = null;
+}
+
+async function saveLead() {
+  const form = document.getElementById('leadForm');
+  if (!form.elements['client_name'].value.trim()) {
+    alert('Client name is required.');
+    form.elements['client_name'].focus();
+    return;
+  }
+  const data = {};
+  Array.from(form.elements).forEach(el => {
+    if (!el.name) return;
+    let v = el.value;
+    if (['adults','children','approx_rooms','est_value','final_value'].includes(el.name)) {
+      v = v === '' ? '' : Number(v);
+    }
+    data[el.name] = v;
+  });
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    await persistLead(data, editingId);
+    closeModal();
+    showToast(editingId ? 'Lead updated' : 'Lead added');
+  } catch (e) {
+    alert('Could not save: ' + e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Save lead';
+  }
+}
+
+async function deleteLead() {
+  if (!editingId) return;
+  if (!confirm('Delete this lead permanently? This affects all agents.')) return;
+  const btn = document.getElementById('deleteBtn');
+  btn.disabled = true;
+  try {
+    await removeLead(editingId);
+    closeModal();
+    showToast('Lead deleted');
+  } catch (e) {
+    alert('Could not delete: ' + e.message);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+/* ---------- CSV export ---------- */
+function exportCSV() {
+  if (!leads.length) { alert('No leads to export.'); return; }
+  const cols = ['id','created_at','client_name','agency','contact_person','email','phone','nationality','source','trip_type','destination','agent',
+    'start_date','end_date','adults','children','approx_rooms','est_value','currency','status',
+    'next_action_date','next_action','last_contact_date','final_value','lost_reason','notes','created_by','updated_by'];
+  const esc = v => {
+    if (v == null) return '';
+    if (v && typeof v === 'object' && v.toDate) v = v.toDate().toISOString();
+    const s = String(v);
+    return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
+  };
+  const rows = [cols.join(',')].concat(leads.map(l => cols.map(c => esc(l[c])).join(',')));
+  const blob = new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'sisi-leads-' + todayISO() + '.csv';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+/* ---------- Filter inputs ---------- */
+function refreshAgentFilter() {
+  const sel = document.getElementById('qAgent');
+  const cur = filters.agent;
+  const agents = Array.from(new Set(leads.map(l => l.agent).filter(Boolean))).sort();
+  sel.innerHTML = '<option value="">All agents</option>' + agents.map(a => `<option ${cur===a?'selected':''}>${escapeHtml(a)}</option>`).join('');
+
+  const nsel = document.getElementById('qNationality');
+  const ncur = filters.nationality;
+  const nats = Array.from(new Set(leads.map(l => l.nationality).filter(Boolean))).sort();
+  nsel.innerHTML = '<option value="">All nationalities</option>' + nats.map(n => `<option ${ncur===n?'selected':''}>${escapeHtml(n)}</option>`).join('');
+}
+function bindFilters() {
+  document.getElementById('qSearch').value = filters.search;
+  document.getElementById('qStatus').value = filters.status;
+  document.getElementById('qSource').value = filters.source;
+
+  document.getElementById('qSearch').addEventListener('input', e => { filters.search = e.target.value; saveFilters(); renderTable(); });
+  document.getElementById('qStatus').addEventListener('change', e => { filters.status = e.target.value; saveFilters(); renderTable(); });
+  document.getElementById('qAgent').addEventListener('change', e => { filters.agent = e.target.value; saveFilters(); renderTable(); });
+  document.getElementById('qSource').addEventListener('change', e => { filters.source = e.target.value; saveFilters(); renderTable(); });
+  document.getElementById('qNationality').addEventListener('change', e => { filters.nationality = e.target.value; saveFilters(); renderTable(); });
+  document.getElementById('clearFilters').addEventListener('click', () => {
+    filters = { search:'', status:'', agent:'', source:'', nationality:'' };
+    saveFilters();
+    document.getElementById('qSearch').value = '';
+    document.getElementById('qStatus').value = '';
+    document.getElementById('qSource').value = '';
+    document.getElementById('qAgent').value = '';
+    document.getElementById('qNationality').value = '';
+    renderTable();
+  });
+}
+
+function bindTabs() {
+  document.querySelectorAll('.tab').forEach(t => {
+    t.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+      document.querySelectorAll('.section').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      document.getElementById('sec-' + t.dataset.tab).classList.add('active');
+      if (t.dataset.tab === 'pipeline') renderPipeline();
+    });
+  });
+}
+
+function renderAll() {
+  refreshAgentFilter();
+  renderTable();
+  renderPipeline();
+  renderFollowups();
+}
+
+/* ---------- Init ---------- */
+loadFilters();
+bindTabs();
+bindFilters();
+document.getElementById('newLeadBtn').addEventListener('click', () => openModal());
+document.getElementById('exportBtn').addEventListener('click', exportCSV);
+document.getElementById('modalClose').addEventListener('click', closeModal);
+document.getElementById('cancelBtn').addEventListener('click', closeModal);
+document.getElementById('saveBtn').addEventListener('click', saveLead);
+document.getElementById('deleteBtn').addEventListener('click', deleteLead);
+document.getElementById('modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+/* If config still says REPLACE_ME, show a friendly prompt instead of running */
+if (firebaseConfig.apiKey === 'REPLACE_ME') {
+  document.getElementById('loadingMask').innerHTML = '<div style="max-width:480px; text-align:center; line-height:1.6"><strong>Setup needed</strong><br><br>Open <code>index.html</code> and replace the <code>firebaseConfig</code> placeholder values with the keys from your Firebase project.<br><br>See <code>README.md</code> for step-by-step instructions.</div>';
+}
+</script>
+</body>
+</html>
