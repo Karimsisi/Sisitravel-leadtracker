@@ -359,16 +359,17 @@ import {
    ========================================================================= */
 const firebaseConfig = {
   apiKey: "AIzaSyCMO__uTR4xEv9IbreD5e9HAoW-TXrkwf0",
-  authDomain: "sisitravelleadtracker.firebaseapp.com",
-  projectId: "sisitravelleadtracker",
-  storageBucket: "sisitravelleadtracker.firebasestorage.app",
-  messagingSenderId: "324732902201",
-  appId: "1:324732902201:web:a9ce7a84fa4cbaba8aa6e8"
+  authDomain: "sisi-travel-crm.firebaseapp.com",
+  projectId: "sisi-travel-crm",
+  storageBucket: "sisi-travel-crm.firebasestorage.app",
+  messagingSenderId: "216195185717",
+  appId: "1:216195185717:web:81f47c9097818658ddc57c",
+  measurementId: "G-MG7XGX9CJT"
 };
 
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+const analytics = getAnalytics(app);
 /* ============================================================ */
 
 const FILTERS_KEY = 'sisi_crm_filters_v1';
